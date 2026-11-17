@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>City Love Potions For Colored People - 2D Canvas Game</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap');
+    
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0b0f19;
+      font-family: 'Outfit', sans-serif;
+      color: #ffffff;
+    }
+
+    /* Custom Glassmorphism styles */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .glass-btn {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(168, 85, 247, 0.8));
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    }
+    .glass-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(236, 72, 153, 0.5);
+      background: linear-gradient(135deg, rgba(236, 72, 153, 1), rgba(168, 85, 247, 1));
+    }
+    .glass-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(236, 72, 153, 0.5);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(236, 72, 153, 0.8);
+    }
+
+    /* Custom Pulse Animations */
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    .glow-effect {
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="flex flex-col h-screen w-screen overflow-hidden select-none">
+
+  <!-- TOP HUD BAR -->
+  <header id="hud" class="w-full bg-slate-900/90 border-b border-pink-500/30 px-4 py-2 flex flex-wrap items-center justify-between text-xs sm:text-sm z-20 shadow-lg backdrop-blur-md">
+    <!-- Left: Profile & Level Info -->
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
+        <i class="fa-solid fa-user-circle text-pink-400 text-base"></i>
+        <span id="hud-player-name" class="font-bold text-pink-200">Player</span>
+      </div>
+      <div class="bg-gradient-to-r from-pink-600 to-purple-600 px-3 py-1.5 rounded-full font-bold shadow text-white flex items-center space-x-1">
+        <span>LVL</span>
+        <span id="hud-level" class="text-yellow-300 font-extrabold text-base">1</span>
+      </div>
+    </div>
+
+    <!-- Center: Health Bar & Level Timer -->
+    <div class="flex items-center space-x-4 my-1 sm:my-0">
+      <!-- Health Bar -->
+      <div class="flex flex-col w-32 sm:w-48">
+        <div class="flex justify-between text-xs font-semibold mb-0.5">
+          <span class="text-red-400 flex items-center"><i class="fa-solid fa-heart mr-1"></i> LIFE</span>
+          <span id="hud-hp-text" class="text-slate-300">100 / 100</span>
+        </div>
+        <div class="w-full bg-slate-950 rounded-full h-3 border border-slate-700 p-0.5">
+          <div id="hud-hp-fill" class="bg-gradient-to-r from-red-600 to-pink-500 h-full rounded-full transition-all duration-300" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- Level Timer -->
+      <div class="flex items-center space-x-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+        <i class="fa-solid fa-clock text-amber-400 text-sm"></i>
+        <span id="hud-timer" class="font-mono font-bold text-amber-300 text-sm sm:text-base">15:00</span>
+      </div>
+    </div>
+
+    <!-- Right: Relationship Target & Controls -->
+    <div class="flex items-center space-x-3">
+      <!-- Girlfriend Count / Target -->
+      <div class="flex items-center space-x-2 bg-pink-950/40 px-3 py-1.5 rounded-xl border border-pink-500/40">
+        <i class="fa-solid fa-heart-circle-check text-pink-400 text-base animate-bounce"></i>
+        <div>
+          <span class="text-slate-400 text-[10px] block uppercase leading-none">Girlfriends</span>
+          <span id="hud-girlfriends" class="font-bold text-pink-300 text-sm sm:text-base">0 / 5</span>
+        </div>
+      </div>
+
+      <!-- Score -->
+      <div class="hidden sm:flex flex-col items-end">
+        <span class="text-slate-400 text-[10px] uppercase">Score</span>
+        <span id="hud-score" class="font-bold text-emerald-400 text-sm">0</span>
+      </div>
+
+      <!-- Menu Button -->
+      <button id="btn-menu" class="bg-slate-800 hover:bg-slate-700 text-slate-200 p-2 rounded-xl border border-slate-600 transition">
+        <i class="fa-solid fa-bars text-base"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- POTION INVENTORY QUICK BAR -->
+  <div id="potion-bar" class="absolute top-16 left-1/2 transform -translate-x-1/2 z-20 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-full border border-pink-500/30 flex items-center space-x-3 shadow-xl">
+    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:block">5 Senses Potions:</div>
+    <div class="flex items-center space-x-2">
+      <div id="potion-touch" class="flex items-center space-x-1 bg-slate-800/90 px-2.5 py-1 rounded-full border border-pink-500/40 text-xs" title="Touch Potion">
+        <span class="text-pink-400 font-bold"><i class="fa-solid fa-hand-holding-heart"></i> Touch</span>
+        <span class="bg-pink-900/60 text-pink-200 px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold count">0</span>
+      </div>
+      <div id="potion-smell" class="flex items-center space-x-1 bg-slate-800/90 px-2.5 py-1 rounded-full border border-purple-500/40 text-xs" title="Smell Potion">
+        <span class="text-purple-400 font-bold"><i class="fa-solid fa-wind"></i> Smell</span>
+        <span class="bg-purple-900/60 text-purple-200 px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold count">0</span>
+      </div>
+      <div id="potion-taste" class="flex items-center space-x-1 bg-slate-800/90 px-2.5 py-1 rounded-full border border-red-500/40 text-xs" title="Taste Potion">
+        <span class="text-red-400 font-bold"><i class="fa-solid fa-wine-glass"></i> Taste</span>
+        <span class="bg-red-900/60 text-red-200 px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold count">0</span>
+      </div>
+      <div id="potion-sight" class="flex items-center space-x-1 bg-slate-800/90 px-2.5 py-1 rounded-full border border-blue-500/40 text-xs" title="Sight Potion">
+        <span class="text-blue-400 font-bold"><i class="fa-solid fa-eye"></i> Sight</span>
+        <span class="bg-blue-900/60 text-blue-200 px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold count">0</span>
+      </div>
+      <div id="potion-sound" class="flex items-center space-x-1 bg-slate-800/90 px-2.5 py-1 rounded-full border border-emerald-500/40 text-xs" title="Sound Potion">
+        <span class="text-emerald-400 font-bold"><i class="fa-solid fa-music"></i> Hear</span>
+        <span class="bg-emerald-900/60 text-emerald-200 px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold count">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOMB WARNING BANNER -->
+  <div id="bomb-warning" class="hidden absolute top-28 left-1/2 transform -translate-x-1/2 z-30 bg-red-600/95 text-white px-6 py-2.5 rounded-2xl border-2 border-yellow-400 font-black tracking-widest text-base sm:text-lg animate-bounce shadow-2xl flex items-center space-x-3">
+    <i class="fa-solid fa-triangle-exclamation text-yellow-300 text-2xl"></i>
+    <span>BOMB WARNING! PRESS SHIFT + ARROWS TO ESCAPE!</span>
+    <span id="bomb-timer" class="bg-yellow-400 text-red-950 px-2 py-0.5 rounded-md font-mono text-xl">2.0s</span>
+  </div>
+
+  <!-- NOTIFICATION BANNER / FEEDBACK -->
+  <div id="toast-container" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-30 flex flex-col space-y-2 pointer-events-none items-center w-11/12 max-w-md"></div>
+
+  <!-- MAIN CANVAS GAME CONTAINER -->
+  <main class="relative flex-1 w-full h-full bg-slate-950 overflow-hidden">
+    <canvas id="gameCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+  </main>
+
+  <!-- MODAL 1: START / PLAYER REGISTRATION MODAL -->
+  <div id="modal-start" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-lg">
+    <div class="glass-panel w-full max-w-md p-6 sm:p-8 rounded-3xl text-center relative border border-pink-500/30 shadow-2xl">
+      <div class="w-16 h-16 bg-gradient-to-tr from-pink-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-pink-500/30">
+        <i class="fa-solid fa-city text-3xl text-white"></i>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-300 bg-clip-text text-transparent mb-2">
+        CITY LOVE POTIONS
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-300 mb-6 leading-relaxed">
+        Explore the 2D city, collect 5-Senses Love Potions, secure private rooms, avoid undercover detectives & spark bombs, and build consensual polyamorous relationships across 100 levels!
+      </p>
+
+      <form id="form-start" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Enter Player Name</label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-4 top-3.5 text-slate-400"></i>
+            <input type="text" id="input-player-name" required maxlength="20" placeholder="e.g. Romeo" 
+                   class="w-full bg-slate-900/90 border border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-pink-500 text-sm font-semibold transition" value="Player One">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full glass-btn py-3.5 rounded-xl font-bold text-white text-base tracking-wide flex items-center justify-center space-x-2 mt-4 shadow-lg">
+          <span>START GAME</span>
+          <i class="fa-solid fa-play"></i>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-4 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
+        <span>100 Playable Levels</span>
+        <span>Auto-Save Local Storage</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: PAUSE / MENU MODAL & HISTORY -->
+  <div id="modal-menu" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div class="glass-panel w-full max-w-2xl p-6 rounded-3xl relative border border-slate-700 max-h-[90vh] flex flex-col">
+      <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+        <h2 class="text-xl font-bold text-pink-400 flex items-center">
+          <i class="fa-solid fa-gamepad mr-2"></i> GAME MENU & HISTORY
+        </h2>
+        <button id="btn-close-menu" class="text-slate-400 hover:text-white p-2">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <div class="py-4 space-y-6 overflow-y-auto flex-1 pr-2">
+        <!-- Player Stats Summary -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-slate-900/80 p-3 rounded-2xl border border-slate-800 text-center">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Current Player</span>
+            <span id="menu-stat-name" class="font-bold text-pink-300 text-sm truncate block">--</span>
+          </div>
+          <div class="bg-slate-900/80 p-3 rounded-2xl border border-slate-800 text-center">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">High Level</span>
+            <span id="menu-stat-maxlvl" class="font-bold text-amber-300 text-sm block">1</span>
+          </div>
+          <div class="bg-slate-900/80 p-3 rounded-2xl border border-slate-800 text-center">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Highest Score</span>
+            <span id="menu-stat-highscore" class="font-bold text-emerald-300 text-sm block">0</span>
+          </div>
+          <div class="bg-slate-900/80 p-3 rounded-2xl border border-slate-800 text-center">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Total GF Saved</span>
+            <span id="menu-stat-gf" class="font-bold text-purple-300 text-sm block">0</span>
+          </div>
+        </div>
+
+        <!-- Gameplay Controls Guide -->
+        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+          <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center">
+            <i class="fa-solid fa-keyboard text-pink-400 mr-2"></i> Controls Quick Reference
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
+            <div><span class="font-mono bg-slate-800 px-1.5 py-0.5 rounded text-pink-300">Arrow Keys / WASD</span>: Move 4 Directions</div>
+            <div><span class="font-mono bg-slate-800 px-1.5 py-0.5 rounded text-pink-300">Shift</span>: Run Fast / Escape Sparks</div>
+            <div><span class="font-mono bg-slate-800 px-1.5 py-0.5 rounded text-pink-300">Click Potions</span>: Collect Potion Items</div>
+            <div><span class="font-mono bg-slate-800 px-1.5 py-0.5 rounded text-pink-300">Click Doors/Windows</span>: Lock Room Privacy</div>
+            <div class="col-span-1 sm:col-span-2"><span class="font-mono bg-slate-800 px-1.5 py-0.5 rounded text-pink-300">Click Compatible NPC</span>: Form Consensual Relationship (Must be inside locked room)</div>
+          </div>
+        </div>
+
+        <!-- History Records Table Dropdown -->
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center">
+              <i class="fa-solid fa-history text-purple-400 mr-2"></i> Local Game History Logs
+            </h3>
+            <button id="btn-clear-history" class="text-[10px] text-red-400 hover:underline">Clear History</button>
+          </div>
+          <div class="bg-slate-900/90 rounded-2xl border border-slate-800 overflow-hidden">
+            <div class="max-h-48 overflow-y-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-800/70 text-slate-400 uppercase text-[10px] border-b border-slate-700">
+                    <th class="p-2.5">Date</th>
+                    <th class="p-2.5">Player</th>
+                    <th class="p-2.5">Level</th>
+                    <th class="p-2.5">Score</th>
+                    <th class="p-2.5">Result</th>
+                  </tr>
+                </thead>
+                <tbody id="history-table-body" class="divide-y divide-slate-800 text-slate-300 font-mono">
+                  <!-- Dynamic History Rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-800 flex justify-between items-center">
+        <button id="btn-resume" class="glass-btn px-6 py-2.5 rounded-xl font-bold text-white text-sm">
+          RESUME GAME
+        </button>
+        <button id="btn-restart-level" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl font-semibold text-xs border border-slate-600">
+          Restart Level
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: LEVEL COMPLETE DIALOG -->
+  <div id="modal-level-complete" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+    <div class="glass-panel w-full max-w-md p-6 sm:p-8 rounded-3xl text-center relative border border-emerald-500/40 shadow-2xl">
+      <div class="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/30 animate-bounce">
+        <i class="fa-solid fa-trophy text-4xl text-yellow-300"></i>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-black text-emerald-400 tracking-tight mb-1">
+        LEVEL COMPLETED!
+      </h2>
+      <p id="lvl-complete-sub" class="text-xs text-slate-300 mb-6">Great job! All relationship targets met safely.</p>
+
+      <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-2 text-sm mb-6 text-left font-mono">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Player Name:</span>
+          <span id="lvl-complete-name" class="font-bold text-white"> Romeo </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Level Cleared:</span>
+          <span id="lvl-complete-lvl" class="font-bold text-amber-300"> Level 1 </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Level Score:</span>
+          <span id="lvl-complete-score" class="font-bold text-emerald-400"> +1500 </span>
+        </div>
+        <div class="flex justify-between border-t border-slate-800 pt-2 mt-2">
+          <span class="text-slate-400">Total High Score:</span>
+          <span id="lvl-complete-highscore" class="font-bold text-pink-400"> 2500 </span>
+        </div>
+      </div>
+
+      <button id="btn-next-level" class="w-full glass-btn py-3.5 rounded-xl font-bold text-white text-base tracking-wide shadow-lg">
+        NEXT LEVEL <i class="fa-solid fa-arrow-right ml-2"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 4: GAME OVER DIALOG -->
+  <div id="modal-game-over" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+    <div class="glass-panel w-full max-w-md p-6 sm:p-8 rounded-3xl text-center relative border border-red-500/40 shadow-2xl">
+      <div class="w-20 h-20 bg-gradient-to-tr from-red-600 to-pink-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-red-500/30">
+        <i class="fa-solid fa-heart-crack text-4xl text-slate-100"></i>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-black text-red-500 tracking-tight mb-1">
+        GAME OVER
+      </h2>
+      <p id="game-over-reason" class="text-xs text-red-300 mb-6 bg-red-950/40 p-2.5 rounded-xl border border-red-800/50">
+        Reason: Caught by detectives in an un-locked room!
+      </p>
+
+      <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-800 space-y-2 text-sm mb-6 text-left font-mono">
+        <div class="flex justify-between">
+          <span class="text-slate-400">Player Name:</span>
+          <span id="game-over-name" class="font-bold text-white"> Romeo </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Failed at Level:</span>
+          <span id="game-over-lvl" class="font-bold text-amber-300"> Level 1 </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">Final Score:</span>
+          <span id="game-over-score" class="font-bold text-emerald-400"> 850 </span>
+        </div>
+      </div>
+
+      <button id="btn-retry-level" class="w-full glass-btn py-3.5 rounded-xl font-bold text-white text-base tracking-wide shadow-lg">
+        TRY AGAIN <i class="fa-solid fa-rotate-right ml-2"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL 5: VICTORY LEVEL 100 SCREEN -->
+  <div id="modal-victory" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl">
+    <div class="glass-panel w-full max-w-lg p-6 sm:p-10 rounded-3xl text-center relative border-2 border-yellow-400 shadow-2xl overflow-hidden">
+      <div class="w-24 h-24 bg-gradient-to-tr from-yellow-400 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl shadow-yellow-500/40 animate-pulse">
+        <i class="fa-solid fa-[#ffd700] fa-crown text-5xl text-slate-950"></i>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-purple-400 tracking-tight mb-2">
+        CONGRATULATIONS!
+      </h2>
+      <p class="text-sm font-bold text-yellow-200 uppercase tracking-widest mb-4">
+        YOU COMPLETED CITY LOVE POTIONS FOR COLORED PEOPLE!
+      </p>
+
+      <div class="bg-slate-900/95 p-5 rounded-2xl border border-yellow-500/40 space-y-3 text-sm mb-6 text-left font-mono">
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">LEVEL COMPLETED:</span>
+          <span class="font-bold text-yellow-300 text-base">100</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">RELATIONSHIP TARGET:</span>
+          <span class="font-bold text-pink-400 text-base">1,000</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-800 pb-2">
+          <span class="text-slate-400">PLAYER NAME:</span>
+          <span id="victory-name" class="font-bold text-white text-base"> Romeo </span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-400">FINAL SCORE:</span>
+          <span id="victory-score" class="font-bold text-emerald-400 text-base"> 100,000 </span>
+        </div>
+      </div>
+
+      <p class="text-xs text-emerald-300 mb-6 font-semibold"><i class="fa-solid fa-floppy-disk mr-1"></i> YOUR HIGH SCORE HAS BEEN PERMANENTLY SAVED!</p>
+
+      <button id="btn-replay-game" class="w-full glass-btn py-4 rounded-xl font-black text-white text-lg tracking-wider shadow-xl">
+        REPLAY ALL LEVELS <i class="fa-solid fa-rotate-left ml-2"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- GAME JAVASCRIPT LOGIC -->
+  <script>
+    /* ==========================================================================
+       1. SOUND SYNTHESIZER (Web Audio API)
+       ========================================================================== */
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+          }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      playTone(freq, type = 'sine', duration = 0.1, gainValue = 0.1) {
+        if (!this.enabled || !this.ctx) return;
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(gainValue, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      playPotionPickup() {
+        this.init();
+        this.playTone(523.25, 'sine', 0.08, 0.15); // C5
+        setTimeout(() => this.playTone(659.25, 'sine', 0.08, 0.15), 60); // E5
+        setTimeout(() => this.playTone(783.99, 'sine', 0.12, 0.2), 120); // G5
+      }
+
+      playHeartbreak() {
+        this.init();
+        this.playTone(400, 'sawtooth', 0.15, 0.2);
+        setTimeout(() => this.playTone(300, 'sawtooth', 0.25, 0.2), 150);
+      }
+
+      playBombTick() {
+        this.init();
+        this.playTone(880, 'square', 0.04, 0.1);
+      }
+
+      playExplosion() {
+        this.init();
+        if (!this.ctx) return;
+        try {
+          const bufferSize = this.ctx.sampleRate * 0.4;
+          const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+          noise.connect(gain);
+          gain.connect(this.ctx.destination);
+          noise.start();
+        } catch (e) {}
+      }
+
+      playDoorClick() {
+        this.init();
+        this.playTone(180, 'triangle', 0.06, 0.2);
+      }
+
+      playSuccess() {
+        this.init();
+        this.playTone(440, 'sine', 0.1, 0.15);
+        setTimeout(() => this.playTone(554.37, 'sine', 0.1, 0.15), 90);
+        setTimeout(() => this.playTone(659.25, 'sine', 0.2, 0.2), 180);
+      }
+
+      playGameOver() {
+        this.init();
+        this.playTone(300, 'sawtooth', 0.3, 0.25);
+        setTimeout(() => this.playTone(250, 'sawtooth', 0.3, 0.25), 250);
+        setTimeout(() => this.playTone(180, 'sawtooth', 0.5, 0.3), 500);
+      }
+
+      playVictory() {
+        this.init();
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playTone(freq, 'triangle', 0.25, 0.2), idx * 140);
+        });
+      }
+    }
+
+    const audio = new AudioEngine();
+
+    /* ==========================================================================
+       2. LOCAL STORAGE & GAME STATE MANAGERS
+       ========================================================================== */
+    const STORAGE_KEY = 'CITY_LOVE_POTIONS_SAVE_DATA_V1';
+
+    function getLocalStorageData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return {
+        playerName: 'Player One',
+        currentLevel: 1,
+        highestLevel: 1,
+        highScore: 0,
+        totalGirlfriends: 0,
+        potionsCollected: 0,
+        history: []
+      };
+    }
+
+    function saveLocalStorageData(data) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {}
+    }
+
+    /* ==========================================================================
+       3. CORE GAME ENGINE SETUP
+       ========================================================================== */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Canvas Resize Handling
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Game World Constants
+    const WORLD_WIDTH = 2400;
+    const WORLD_HEIGHT = 2400;
+
+    // Toast Notifications System
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      let bgClass = 'bg-slate-900 border-slate-700 text-slate-100';
+      if (type === 'success') bgClass = 'bg-emerald-900/90 border-emerald-500 text-emerald-100';
+      if (type === 'danger') bgClass = 'bg-red-900/90 border-red-500 text-red-100';
+      if (type === 'warning') bgClass = 'bg-amber-900/90 border-amber-400 text-amber-100';
+
+      toast.className = `px-4 py-2 rounded-xl border text-xs font-semibold shadow-lg backdrop-blur-md transform transition-all duration-300 translate-y-2 opacity-0 flex items-center space-x-2 ${bgClass}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    /* ==========================================================================
+       4. GAME OBJECT DEFINITIONS
+       ========================================================================== */
+    const STATE = {
+      playerName: 'Player One',
+      level: 1,
+      score: 0,
+      highScore: 0,
+      hp: 100,
+      maxHp: 100,
+      girlfriends: 0,
+      targetGirlfriends: 5,
+      timerSeconds: 900,
+      isPaused: false,
+      isGameOver: false,
+      isVictory: false,
+      bombWarningActive: false,
+      bombTimer: 2.0,
+      potions: { touch: 0, smell: 0, taste: 0, sight: 0, sound: 0 }
+    };
+
+    const keys = {
+      ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
+      w: false, s: false, a: false, d: false, Shift: false
+    };
+
+    window.addEventListener('keydown', (e) => {
+      audio.init();
+      if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+      if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true;
+      if (e.key === 'Shift') keys.Shift = true;
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+      if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase] = false;
+      if (e.key === 'Shift') keys.Shift = false;
+    });
+
+    // Player Object
+    const player = {
+      x: 1200,
+      y: 1200,
+      radius: 14,
+      baseSpeed: 3.5,
+      sprintSpeed: 6.5,
+      facing: 'down',
+      isInside: false,
+      currentRoomId: null
+    };
+
+    // Camera Object
+    const camera = {
+      x: 0,
+      y: 0,
+      width: canvas.width,
+      height: canvas.height
+    };
+
+    // City Map Data Structures
+    let buildings = [];
+    let roads = [];
+    let vehicles = [];
+    let npcs = [];
+    let detectives = [];
+    let potionPickups = [];
+    let activeBombs = [];
+
+    /* ==========================================================================
+       5. MAP & WORLD GENERATOR
+       ========================================================================== */
+    function generateCityWorld() {
+      buildings = [];
+      roads = [];
+      vehicles = [];
+      npcs = [];
+      detectives = [];
+      potionPickups = [];
+      activeBombs = [];
+
+      const gridSize = 400;
+      const roadWidth = 80;
+
+      // Generate Road Grid
+      for (let x = 0; x < WORLD_WIDTH; x += gridSize) {
+        roads.push({ x: x + 160, y: 0, width: roadWidth, height: WORLD_HEIGHT, direction: 'vertical' });
+      }
+      for (let y = 0; y < WORLD_HEIGHT; y += gridSize) {
+        roads.push({ x: 0, y: y + 160, width: WORLD_WIDTH, height: roadWidth, direction: 'horizontal' });
+      }
+
+      // Generate Buildings in City Blocks
+      let bId = 1;
+      const buildingTypes = ['house', 'hotel', 'motel', 'building'];
+      const buildingColors = ['#1e293b', '#334155', '#0f172a', '#1e1b4b', '#312e81', '#1e3a8a'];
+
+      for (let bx = 50; bx < WORLD_WIDTH - 250; bx += gridSize) {
+        for (let by = 50; by < WORLD_HEIGHT - 250; by += gridSize) {
+          // Block Quadrants for Buildings
+          const quadOffsets = [
+            { ox: 10, oy: 10, w: 130, h: 130 },
+            { ox: 250, oy: 10, w: 130, h: 130 },
+            { ox: 10, oy: 250, w: 130, h: 130 },
+            { ox: 250, oy: 250, w: 130, h: 130 }
+          ];
+
+          quadOffsets.forEach((q, idx) => {
+            const type = buildingTypes[(bId + idx) % buildingTypes.length];
+            const color = buildingColors[(bId * 2 + idx) % buildingColors.length];
+            const b = {
+              id: bId++,
+              type: type,
+              x: bx + q.ox,
+              y: by + q.oy,
+              width: q.w,
+              height: q.h,
+              color: color,
+              doorsLocked: false,
+              windowsLocked: false,
+              doorX: bx + q.ox + q.w / 2 - 12,
+              doorY: by + q.oy + q.h - 8,
+              doorWidth: 24,
+              doorHeight: 8
+            };
+            buildings.push(b);
+          });
+        }
+      }
+
+      // Spawn Vehicles on Roads
+      const vehicleTypes = [
+        { type: 'jeepney', color: '#e11d48', width: 34, height: 18 },
+        { type: 'taxi', color: '#eab308', width: 28, height: 16 },
+        { type: 'bus', color: '#2563eb', width: 44, height: 20 },
+        { type: 'suv', color: '#475569', width: 30, height: 16 },
+        { type: 'tricycle', color: '#16a34a', width: 20, height: 14 }
+      ];
+
+      roads.forEach(r => {
+        if (r.direction === 'vertical') {
+          for (let i = 0; i < 3; i++) {
+            const vTemplate = vehicleTypes[Math.floor(Math.random() * vehicleTypes.length)];
+            vehicles.push({
+              ...vTemplate,
+              x: r.x + 20 + (i % 2) * 35,
+              y: Math.random() * WORLD_HEIGHT,
+              speed: (2 + Math.random() * 2) * (i % 2 === 0 ? 1 : -1),
+              direction: 'vertical'
+            });
+          }
+        } else {
+          for (let i = 0; i < 3; i++) {
+            const vTemplate = vehicleTypes[Math.floor(Math.random() * vehicleTypes.length)];
+            vehicles.push({
+              ...vTemplate,
+              x: Math.random() * WORLD_WIDTH,
+              y: r.y + 20 + (i % 2) * 35,
+              speed: (2 + Math.random() * 2) * (i % 2 === 0 ? 1 : -1),
+              direction: 'horizontal'
+            });
+          }
+        }
+      });
+
+      // Spawn Single Women of Color NPCs
+      const skinTones = ['#8d5524', '#c68642', '#e0ac69', '#f1c27d', '#703611', '#522e0e'];
+      const hairColors = ['#09090b', '#27272a', '#451a03', '#78350f', '#0284c7'];
+
+      // Scale NPC population with current level targets
+      const npcCount = Math.min(25 + STATE.level * 2, 70);
+      for (let i = 0; i < npcCount; i++) {
+        // Preference: Monogamous (ring) vs Polyamorous (compatible)
+        const isPolyamorous = Math.random() > 0.35; // 65% Poly
+        const hasDatingApp = isPolyamorous && Math.random() > 0.6; // Glowing app bonus
+
+        npcs.push({
+          id: i,
+          x: 100 + Math.random() * (WORLD_WIDTH - 200),
+          y: 100 + Math.random() * (WORLD_HEIGHT - 200),
+          radius: 12,
+          skin: skinTones[Math.floor(Math.random() * skinTones.length)],
+          hair: hairColors[Math.floor(Math.random() * hairColors.length)],
+          isPolyamorous: isPolyamorous,
+          hasDatingApp: hasDatingApp,
+          relationshipFormed: false,
+          speed: 1 + Math.random() * 1.2,
+          dirX: (Math.random() - 0.5) * 2,
+          dirY: (Math.random() - 0.5) * 2,
+          changeDirTimer: Math.random() * 100
+        });
+      }
+
+      // Spawn Undercover Detectives (Higher levels = More detectives)
+      const detectiveCount = STATE.level >= 26 ? Math.min(2 + Math.floor((STATE.level - 20) / 10), 10) : 0;
+      for (let i = 0; i < detectiveCount; i++) {
+        detectives.push({
+          id: i,
+          x: 200 + Math.random() * (WORLD_WIDTH - 400),
+          y: 200 + Math.random() * (WORLD_HEIGHT - 400),
+          radius: 13,
+          speed: 2.2,
+          dirX: (Math.random() - 0.5) * 2,
+          dirY: (Math.random() - 0.5) * 2,
+          changeDirTimer: 60
+        });
+      }
+
+      // Spawn 5 Senses Love Potions
+      spawnPotions(15 + STATE.level);
+    }
+
+    function spawnPotions(count) {
+      const pTypes = ['touch', 'smell', 'taste', 'sight', 'sound'];
+      const pColors = {
+        touch: '#ec4899',
+        smell: '#a855f7',
+        taste: '#ef4444',
+        sight: '#3b82f6',
+        sound: '#10b981'
+      };
+
+      for (let i = 0; i < count; i++) {
+        const type = pTypes[Math.floor(Math.random() * pTypes.length)];
+        potionPickups.push({
+          id: Math.random(),
+          type: type,
+          color: pColors[type],
+          x: 80 + Math.random() * (WORLD_WIDTH - 160),
+          y: 80 + Math.random() * (WORLD_HEIGHT - 160),
+          radius: 8,
+          pulse: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    // Invisible Spark Bomb Spawner Engine
+    function triggerBombWarning() {
+      if (STATE.bombWarningActive || STATE.level < 51) return;
+      STATE.bombWarningActive = true;
+      STATE.bombTimer = 2.0;
+
+      // Spawn Bomb near player
+      const bombX = player.x + (Math.random() - 0.5) * 150;
+      const bombY = player.y + (Math.random() - 0.5) * 150;
+
+      activeBombs.push({
+        x: bombX,
+        y: bombY,
+        radius: 120, // Explosion blast radius
+        sparks: []
+      });
+
+      document.getElementById('bomb-warning').classList.remove('hidden');
+      audio.playBombTick();
+    }
+
+    /* ==========================================================================
+       6. LEVEL ENGINE & SCALING LAWS (1 - 100)
+       ========================================================================== */
+    function configureLevelState(lvl) {
+      STATE.level = lvl;
+      STATE.hp = 100;
+      STATE.girlfriends = 0;
+      STATE.isGameOver = false;
+      STATE.isVictory = false;
+      STATE.bombWarningActive = false;
+
+      // Scaling rules according to GDD:
+      // Levels 1-25: 15 min limit
+      // Levels 26-50: 30 min limit
+      // Levels 51-75: 45 min limit
+      // Levels 76-100: 60 min limit
+      if (lvl <= 25) {
+        STATE.timerSeconds = 15 * 60;
+        STATE.targetGirlfriends = Math.min(3 + lvl, 25);
+      } else if (lvl <= 50) {
+        STATE.timerSeconds = 30 * 60;
+        STATE.targetGirlfriends = Math.min(25 + (lvl - 25) * 2, 60);
+      } else if (lvl <= 75) {
+        STATE.timerSeconds = 45 * 60;
+        STATE.targetGirlfriends = Math.min(60 + (lvl - 50) * 3, 100);
+      } else {
+        STATE.timerSeconds = 60 * 60;
+        STATE.targetGirlfriends = lvl === 100 ? 100 : Math.min(100 + (lvl - 75) * 4, 200);
+      }
+
+      // Reset Player Position to Center
+      player.x = 1200;
+      player.y = 1200;
+      player.isInside = false;
+      player.currentRoomId = null;
+
+      generateCityWorld();
+      updateHUDUI();
+    }
+
+    function updateHUDUI() {
+      document.getElementById('hud-player-name').innerText = STATE.playerName;
+      document.getElementById('hud-level').innerText = STATE.level;
+      document.getElementById('hud-hp-text').innerText = `${Math.max(0, Math.floor(STATE.hp))} / 100`;
+      document.getElementById('hud-hp-fill').style.width = `${Math.max(0, STATE.hp)}%`;
+
+      const mins = Math.floor(STATE.timerSeconds / 60).toString().padStart(2, '0');
+      const secs = Math.floor(STATE.timerSeconds % 60).toString().padStart(2, '0');
+      document.getElementById('hud-timer').innerText = `${mins}:${secs}`;
+
+      document.getElementById('hud-girlfriends').innerText = `${STATE.girlfriends} / ${STATE.targetGirlfriends}`;
+      document.getElementById('hud-score').innerText = STATE.score;
+
+      // Update Potions Count UI
+      document.querySelector('#potion-touch .count').innerText = STATE.potions.touch;
+      document.querySelector('#potion-smell .count').innerText = STATE.potions.smell;
+      document.querySelector('#potion-taste .count').innerText = STATE.potions.taste;
+      document.querySelector('#potion-sight .count').innerText = STATE.potions.sight;
+      document.querySelector('#potion-sound .count').innerText = STATE.potions.sound;
+    }
+
+    /* ==========================================================================
+       7. COLLISION & LOGIC UPDATES
+       ========================================================================== */
+    function update(dt) {
+      if (STATE.isPaused || STATE.isGameOver || STATE.isVictory) return;
+
+      // Timer Countdown
+      STATE.timerSeconds -= dt;
+      if (STATE.timerSeconds <= 0) {
+        STATE.timerSeconds = 0;
+        // Level Time Expired -> Restart Level without deleting High Scores
+        showToast("Time's up! Level timer expired. Restarting current level...", "warning");
+        configureLevelState(STATE.level);
+        return;
+      }
+
+      // Player Movement Logic
+      const currentSpeed = keys.Shift ? player.sprintSpeed : player.baseSpeed;
+      let dx = 0;
+      let dy = 0;
+
+      if (keys.ArrowUp || keys.w) { dy -= 1; player.facing = 'up'; }
+      if (keys.ArrowDown || keys.s) { dy += 1; player.facing = 'down'; }
+      if (keys.ArrowLeft || keys.a) { dx -= 1; player.facing = 'left'; }
+      if (keys.ArrowRight || keys.d) { dx += 1; player.facing = 'right'; }
+
+      if (dx !== 0 && dy !== 0) {
+        dx *= 0.7071;
+        dy *= 0.7071;
+      }
+
+      const nextX = player.x + dx * currentSpeed;
+      const nextY = player.y + dy * currentSpeed;
+
+      // World Boundary Check
+      if (nextX >= 20 && nextX <= WORLD_WIDTH - 20) player.x = nextX;
+      if (nextY >= 20 && nextY <= WORLD_HEIGHT - 20) player.y = nextY;
+
+      // Check Building Entry & Indoor Privacy Rooms
+      let insideBuilding = null;
+      buildings.forEach(b => {
+        // Player at Doorway
+        if (player.x >= b.doorX - 10 && player.x <= b.doorX + b.doorWidth + 10 &&
+            player.y >= b.doorY - 10 && player.y <= b.doorY + b.doorHeight + 10) {
+          insideBuilding = b;
+        } else if (player.x >= b.x && player.x <= b.x + b.width && player.y >= b.y && player.y <= b.y + b.height) {
+          insideBuilding = b;
+        }
+      });
+
+      if (insideBuilding) {
+        player.isInside = true;
+        player.currentRoomId = insideBuilding.id;
+      } else {
+        player.isInside = false;
+        player.currentRoomId = null;
+      }
+
+      // Update Vehicles
+      vehicles.forEach(v => {
+        if (v.direction === 'vertical') {
+          v.y += v.speed;
+          if (v.y < 0) v.y = WORLD_HEIGHT;
+          if (v.y > WORLD_HEIGHT) v.y = 0;
+        } else {
+          v.x += v.speed;
+          if (v.x < 0) v.x = WORLD_WIDTH;
+          if (v.x > WORLD_WIDTH) v.x = 0;
+        }
+
+        // Vehicle Hitbox Collision with Player
+        const dist = Math.hypot(player.x - v.x, player.y - v.y);
+        if (dist < player.radius + 12) {
+          STATE.hp -= 0.4;
+          audio.playHeartbreak();
+          showToast("Watch out! Traffic hit!", "danger");
+        }
+      });
+
+      // Update NPCs (Single Women of Color) Movement
+      npcs.forEach(npc => {
+        npc.changeDirTimer -= dt * 60;
+        if (npc.changeDirTimer <= 0) {
+          npc.dirX = (Math.random() - 0.5) * 2;
+          npc.dirY = (Math.random() - 0.5) * 2;
+          npc.changeDirTimer = 60 + Math.random() * 120;
+        }
+
+        npc.x += npc.dirX * npc.speed;
+        npc.y += npc.dirY * npc.speed;
+
+        // Keep NPCs inside world bounds
+        if (npc.x < 50 || npc.x > WORLD_WIDTH - 50) npc.dirX *= -1;
+        if (npc.y < 50 || npc.y > WORLD_HEIGHT - 50) npc.dirY *= -1;
+      });
+
+      // Update Undercover Detectives Movement & Spotting Logic
+      detectives.forEach(det => {
+        det.changeDirTimer -= dt * 60;
+        if (det.changeDirTimer <= 0) {
+          det.dirX = (Math.random() - 0.5) * 2;
+          det.dirY = (Math.random() - 0.5) * 2;
+          det.changeDirTimer = 90;
+        }
+
+        det.x += det.dirX * det.speed;
+        det.y += det.dirY * det.speed;
+
+        // Keep inside bounds
+        if (det.x < 50 || det.x > WORLD_WIDTH - 50) det.dirX *= -1;
+        if (det.y < 50 || det.y > WORLD_HEIGHT - 50) det.dirY *= -1;
+      });
+
+      // Potion Pickup Collision Logic
+      potionPickups = potionPickups.filter(p => {
+        const dist = Math.hypot(player.x - p.x, player.y - p.y);
+        if (dist < player.radius + p.radius + 8) {
+          STATE.potions[p.type] = (STATE.potions[p.type] || 0) + 1;
+          STATE.score += 50;
+          STATE.hp = Math.min(100, STATE.hp + 10); // Potions restore life bar
+          audio.playPotionPickup();
+          showToast(`Picked up ${p.type.toUpperCase()} Love Potion! (+10 Life)`, "success");
+          return false;
+        }
+        return true;
+      });
+
+      // Random Bomb Trigger Event in higher levels
+      if (STATE.level >= 51 && Math.random() < 0.0015 && !STATE.bombWarningActive) {
+        triggerBombWarning();
+      }
+
+      // Bomb Warning & Spark Detonation Engine
+      if (STATE.bombWarningActive) {
+        STATE.bombTimer -= dt;
+        document.getElementById('bomb-timer').innerText = `${Math.max(0, STATE.bombTimer).toFixed(1)}s`;
+
+        if (STATE.bombTimer <= 0) {
+          STATE.bombWarningActive = false;
+          document.getElementById('bomb-warning').classList.add('hidden');
+
+          // Detonate Active Bombs
+          activeBombs.forEach(b => {
+            const dist = Math.hypot(player.x - b.x, player.y - b.y);
+            audio.playExplosion();
+            if (dist < b.radius) {
+              // Player failed to sprint away within 2 seconds
+              STATE.hp -= 45;
+              audio.playHeartbreak();
+              showToast("BOMB DETONATED NEAR YOU! Secret exposed & damage taken!", "danger");
+              if (STATE.hp <= 0) {
+                triggerGameOver("Exposed by invisible spark bomb explosion!");
+              }
+            } else {
+              showToast("Safely escaped the spark bomb explosion with Shift sprint!", "success");
+            }
+          });
+          activeBombs = [];
+        }
+      }
+
+      // Check Life Bar Zero Game Over
+      if (STATE.hp <= 0 && !STATE.isGameOver) {
+        triggerGameOver("Your Life Bar reached zero!");
+      }
+
+      // Camera Follow Player
+      camera.x = player.x - canvas.width / 2;
+      camera.y = player.y - canvas.height / 2;
+      camera.x = Math.max(0, Math.min(WORLD_WIDTH - canvas.width, camera.x));
+      camera.y = Math.max(0, Math.min(WORLD_HEIGHT - canvas.height, camera.y));
+
+      updateHUDUI();
+    }
+
+    /* ==========================================================================
+       8. MOUSE INTERACTION & ROMANCE LOGIC
+       ========================================================================== */
+    canvas.addEventListener('click', (e) => {
+      audio.init();
+      if (STATE.isPaused || STATE.isGameOver || STATE.isVictory) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left + camera.x;
+      const clickY = e.clientY - rect.top + camera.y;
+
+      // 1. Check Click on Building Doors/Windows to Toggle Privacy Locks
+      buildings.forEach(b => {
+        const doorDist = Math.hypot(clickX - (b.doorX + b.doorWidth / 2), clickY - (b.doorY + b.doorHeight / 2));
+        if (doorDist < 30) {
+          b.doorsLocked = !b.doorsLocked;
+          b.windowsLocked = b.doorsLocked; // Lock windows simultaneously
+          audio.playDoorClick();
+          showToast(`${b.type.toUpperCase()} Room Privacy: ${b.doorsLocked ? 'LOCKED & SECURED 🔒' : 'UNLOCKED 🔓'}`, b.doorsLocked ? "success" : "warning");
+        }
+      });
+
+      // 2. Check Click on Potions
+      potionPickups.forEach(p => {
+        const dist = Math.hypot(clickX - p.x, clickY - p.y);
+        if (dist < 25) {
+          STATE.potions[p.type] = (STATE.potions[p.type] || 0) + 1;
+          STATE.score += 50;
+          STATE.hp = Math.min(100, STATE.hp + 10);
+          audio.playPotionPickup();
+          showToast(`Collected ${p.type.toUpperCase()} Potion!`, "success");
+          potionPickups = potionPickups.filter(item => item !== p);
+        }
+      });
+
+      // 3. Check Click on Women NPCs (Romance Interaction)
+      npcs.forEach(npc => {
+        if (npc.relationshipFormed) return;
+        const dist = Math.hypot(clickX - npc.x, clickY - npc.y);
+        const playerDist = Math.hypot(player.x - npc.x, player.y - npc.y);
+
+        if (dist < 28 && playerDist < 90) {
+          // Rule 3 & 8: Check Monogamy/Marriage Compatibility
+          if (!npc.isPolyamorous) {
+            // Ring Icon NPC (Incompatible Monogamous seeking marriage)
+            STATE.hp -= 20;
+            audio.playHeartbreak();
+            showToast("INCOMPATIBLE! Ring Icon indicates Monogamy/Exclusive Marriage seeker. Relationship conflict! (-20 Life)", "danger");
+            return;
+          }
+
+          // Rule 3: Privacy check - Must enter house/hotel/motel and lock doors/windows
+          if (!player.isInside) {
+            // Outdoors attempt -> Detectives / Witnesses call 911 -> Game Over
+            triggerGameOver("Spotted performing private magical activities outdoors! Witnesses called 911.");
+            return;
+          }
+
+          // Check if current room doors & windows are locked
+          const currentBuilding = buildings.find(b => b.id === player.currentRoomId);
+          if (!currentBuilding || !currentBuilding.doorsLocked) {
+            // Room unlocked -> Ex-Girlfriends / Detectives trigger Game Over
+            triggerGameOver("Unsecured room! Undercover detectives caught private activity through unlocked doors/windows.");
+            return;
+          }
+
+          // Consensual Polyamorous Romantic Interaction Success!
+          npc.relationshipFormed = true;
+          const pointsGained = npc.hasDatingApp ? 400 : 200;
+          const gfGained = npc.hasDatingApp ? 2 : 1; // Glowing dating app bonus
+
+          STATE.score += pointsGained;
+          STATE.girlfriends += gfGained;
+          audio.playSuccess();
+          showToast(`SUCCESS! Consensual polyamorous relationship built! ${npc.hasDatingApp ? '(2x Dating App Bonus!)' : ''}`, "success");
+
+          // Check Level Completion Target
+          if (STATE.girlfriends >= STATE.targetGirlfriends) {
+            triggerLevelComplete();
+          }
+        }
+      });
+    });
+
+    /* ==========================================================================
+       9. GAME OVER & LEVEL VICTORY HANDLERS
+       ========================================================================== */
+    function triggerGameOver(reason) {
+      STATE.isGameOver = true;
+      audio.playGameOver();
+
+      // Log stats locally
+      saveAttemptRecord('FAILED');
+
+      document.getElementById('game-over-reason').innerText = `Reason: ${reason}`;
+      document.getElementById('game-over-name').innerText = STATE.playerName;
+      document.getElementById('game-over-lvl').innerText = `Level ${STATE.level}`;
+      document.getElementById('game-over-score').innerText = STATE.score;
+
+      document.getElementById('modal-game-over').classList.remove('hidden');
+    }
+
+    function triggerLevelComplete() {
+      if (STATE.level === 100) {
+        // Final Level 100 Victory!
+        STATE.isVictory = true;
+        audio.playVictory();
+        saveAttemptRecord('VICTORY');
+
+        document.getElementById('victory-name').innerText = STATE.playerName;
+        document.getElementById('victory-score').innerText = STATE.score;
+        document.getElementById('modal-victory').classList.remove('hidden');
+        return;
+      }
+
+      STATE.isPaused = true;
+      audio.playSuccess();
+      saveAttemptRecord('COMPLETED');
+
+      document.getElementById('lvl-complete-name').innerText = STATE.playerName;
+      document.getElementById('lvl-complete-lvl').innerText = `Level ${STATE.level}`;
+      document.getElementById('lvl-complete-score').innerText = `+${STATE.score}`;
+      document.getElementById('lvl-complete-highscore').innerText = Math.max(STATE.score, STATE.highScore);
+
+      document.getElementById('modal-level-complete').classList.remove('hidden');
+    }
+
+    function saveAttemptRecord(status) {
+      const data = getLocalStorageData();
+      data.playerName = STATE.playerName;
+      data.highScore = Math.max(data.highScore || 0, STATE.score);
+      data.highestLevel = Math.max(data.highestLevel || 1, STATE.level);
+      data.totalGirlfriends = (data.totalGirlfriends || 0) + STATE.girlfriends;
+
+      const record = {
+        date: new Date().toLocaleString(),
+        name: STATE.playerName,
+        level: STATE.level,
+        score: STATE.score,
+        status: status
+      };
+
+      data.history = data.history || [];
+      data.history.unshift(record); // Add to beginning
+      if (data.history.length > 50) data.history.pop(); // Keep top 50
+
+      saveLocalStorageData(data);
+      STATE.highScore = data.highScore;
+    }
+
+    /* ==========================================================================
+       10. 2D CANVAS RENDERING ENGINE
+       ========================================================================== */
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      // Apply Camera Viewport Translation
+      ctx.translate(-camera.x, -camera.y);
+
+      // 1. Draw City Grass Base
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+      // 2. Draw Roads & Crosswalks
+      roads.forEach(r => {
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(r.x, r.y, r.width, r.height);
+
+        // Road Dashed Lines
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([15, 15]);
+        ctx.beginPath();
+        if (r.direction === 'vertical') {
+          ctx.moveTo(r.x + r.width / 2, r.y);
+          ctx.lineTo(r.x + r.width / 2, r.y + r.height);
+        } else {
+          ctx.moveTo(r.x, r.y + r.height / 2);
+          ctx.lineTo(r.x + r.width, r.y + r.height / 2);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      });
+
+      // 3. Draw Buildings, Doors & Windows
+      buildings.forEach(b => {
+        // Building Exterior/Roof
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, b.width, b.height);
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(b.x, b.y, b.width, b.height);
+
+        // Label Roof
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 11px Outfit, sans-serif';
+        ctx.fillText(b.type.toUpperCase(), b.x + 8, b.y + 20);
+
+        // Doors
+        ctx.fillStyle = b.doorsLocked ? '#ef4444' : '#10b981';
+        ctx.fillRect(b.doorX, b.doorY, b.doorWidth, b.doorHeight);
+
+        // Lock Status Icon
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px FontAwesome';
+        ctx.fillText(b.doorsLocked ? '🔒' : '🔓', b.doorX + 5, b.doorY + 6);
+      });
+
+      // 4. Draw Vehicles
+      vehicles.forEach(v => {
+        ctx.fillStyle = v.color;
+        ctx.fillRect(v.x - v.width / 2, v.y - v.height / 2, v.width, v.height);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(v.x + (v.speed > 0 ? v.width / 2 - 3 : -v.width / 2), v.y - v.height / 2 + 2, 3, 4);
+      });
+
+      // 5. Draw Potions
+      potionPickups.forEach(p => {
+        p.pulse += 0.05;
+        const scale = 1 + Math.sin(p.pulse) * 0.15;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.scale(scale, scale);
+
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '9px Outfit';
+        ctx.textAlign = 'center';
+        ctx.fillText('🧪', 0, 3);
+        ctx.restore();
+      });
+
+      // 6. Draw Spark Bombs
+      activeBombs.forEach(b => {
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Animated Visible Spark Particles
+        for (let i = 0; i < 8; i++) {
+          const ang = Math.random() * Math.PI * 2;
+          const rad = Math.random() * 25;
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(b.x + Math.cos(ang) * rad, b.y + Math.sin(ang) * rad, 4, 4);
+        }
+      });
+
+      // 7. Draw Single Women of Color NPCs
+      npcs.forEach(npc => {
+        ctx.save();
+        ctx.translate(npc.x, npc.y);
+
+        // Body / Skin Tone
+        ctx.fillStyle = npc.skin;
+        ctx.beginPath();
+        ctx.arc(0, 0, npc.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Hair
+        ctx.fillStyle = npc.hair;
+        ctx.beginPath();
+        ctx.arc(0, -3, npc.radius - 2, Math.PI, Math.PI * 2);
+        ctx.fill();
+
+        // Preference Indicators: Monogamy Ring vs Polyamorous Heart/App
+        if (npc.relationshipFormed) {
+          ctx.fillStyle = '#ec4899';
+          ctx.font = '12px Outfit';
+          ctx.fillText('💖', -6, -14);
+        } else if (!npc.isPolyamorous) {
+          // Ring Icon Warning
+          ctx.fillStyle = '#f59e0b';
+          ctx.font = '12px Outfit';
+          ctx.fillText('💍', -6, -14);
+        } else if (npc.hasDatingApp) {
+          // Glowing Dating App Icon
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = '12px Outfit';
+          ctx.fillText('📱✨', -8, -14);
+        } else {
+          // Single Polyamorous Compatible
+          ctx.fillStyle = '#a855f7';
+          ctx.font = '10px Outfit';
+          ctx.fillText('💜', -4, -14);
+        }
+
+        ctx.restore();
+      });
+
+      // 8. Draw Undercover Detectives
+      detectives.forEach(det => {
+        ctx.save();
+        ctx.translate(det.x, det.y);
+
+        ctx.fillStyle = '#475569';
+        ctx.beginPath();
+        ctx.arc(0, 0, det.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Badge / Magnifying Glass Icon
+        ctx.fillStyle = '#eab308';
+        ctx.font = '11px Outfit';
+        ctx.fillText('🔍', -6, -14);
+        ctx.restore();
+      });
+
+      // 9. Draw Main Player Character
+      ctx.save();
+      ctx.translate(player.x, player.y);
+
+      // Player Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.beginPath();
+      ctx.ellipse(0, player.radius - 2, player.radius, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Body / Avatar
+      ctx.fillStyle = '#3b82f6';
+      ctx.beginPath();
+      ctx.arc(0, 0, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Facing Direction Line
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      if (player.facing === 'up') ctx.lineTo(0, -18);
+      if (player.facing === 'down') ctx.lineTo(0, 18);
+      if (player.facing === 'left') ctx.lineTo(-18, 0);
+      if (player.facing === 'right') ctx.lineTo(18, 0);
+      ctx.stroke();
+
+      ctx.restore();
+
+      ctx.restore();
+    }
+
+    /* ==========================================================================
+       11. MAIN GAME LOOP
+       ========================================================================== */
+    let lastTime = performance.now();
+
+    function gameLoop(now) {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      update(dt);
+      render();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    /* ==========================================================================
+       12. UI EVENT LISTENERS & MODAL HANDLERS
+       ========================================================================== */
+    // Registration / Start Game Form
+    document.getElementById('form-start').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById('input-player-name').value.trim();
+      if (nameInput) STATE.playerName = nameInput;
+
+      const savedData = getLocalStorageData();
+      STATE.highScore = savedData.highScore || 0;
+
+      document.getElementById('modal-start').classList.add('hidden');
+      configureLevelState(1);
+    });
+
+    // Menu Pause Button
+    document.getElementById('btn-menu').addEventListener('click', () => {
+      STATE.isPaused = true;
+      populateMenuHistory();
+      document.getElementById('modal-menu').classList.remove('hidden');
+    });
+
+    document.getElementById('btn-close-menu').addEventListener('click', () => {
+      STATE.isPaused = false;
+      document.getElementById('modal-menu').classList.add('hidden');
+    });
+
+    document.getElementById('btn-resume').addEventListener('click', () => {
+      STATE.isPaused = false;
+      document.getElementById('modal-menu').classList.add('hidden');
+    });
+
+    document.getElementById('btn-restart-level').addEventListener('click', () => {
+      document.getElementById('modal-menu').classList.add('hidden');
+      STATE.isPaused = false;
+      configureLevelState(STATE.level);
+    });
+
+    // Level Complete Next Level Button
+    document.getElementById('btn-next-level').addEventListener('click', () => {
+      document.getElementById('modal-level-complete').classList.add('hidden');
+      STATE.isPaused = false;
+      configureLevelState(STATE.level + 1);
+    });
+
+    // Game Over Retry Button
+    document.getElementById('btn-retry-level').addEventListener('click', () => {
+      document.getElementById('modal-game-over').classList.add('hidden');
+      configureLevelState(STATE.level);
+    });
+
+    // Victory Replay Button
+    document.getElementById('btn-replay-game').addEventListener('click', () => {
+      document.getElementById('modal-victory').classList.add('hidden');
+      STATE.score = 0;
+      configureLevelState(1);
+    });
+
+    // Clear History Button
+    document.getElementById('btn-clear-history').addEventListener('click', () => {
+      const data = getLocalStorageData();
+      data.history = [];
+      saveLocalStorageData(data);
+      populateMenuHistory();
+      showToast("History log cleared!", "info");
+    });
+
+    function populateMenuHistory() {
+      const data = getLocalStorageData();
+      document.getElementById('menu-stat-name').innerText = STATE.playerName;
+      document.getElementById('menu-stat-maxlvl').innerText = data.highestLevel || 1;
+      document.getElementById('menu-stat-highscore').innerText = data.highScore || 0;
+      document.getElementById('menu-stat-gf').innerText = data.totalGirlfriends || 0;
+
+      const tbody = document.getElementById('history-table-body');
+      tbody.innerHTML = '';
+
+      if (!data.history || data.history.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-500 italic">No previous game history recorded yet.</td></tr>`;
+        return;
+      }
+
+      data.history.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/40 transition';
+        let statusColor = 'text-emerald-400';
+        if (item.status === 'FAILED') statusColor = 'text-red-400';
+        if (item.status === 'VICTORY') statusColor = 'text-yellow-300 font-bold';
+
+        tr.innerHTML = `
+          <td class="p-2.5 text-[11px] text-slate-400">${item.date}</td>
+          <td class="p-2.5 font-bold text-slate-200">${item.name}</td>
+          <td class="p-2.5 text-amber-300">Lvl ${item.level}</td>
+          <td class="p-2.5 text-emerald-300">${item.score}</td>
+          <td class="p-2.5 font-bold ${statusColor}">${item.status}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Start Engine Request Frame Loop
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
